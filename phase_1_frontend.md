@@ -8,7 +8,7 @@
 
 1. **Створення проєкту за допомогою Vite:**
    ```bash
-   npx -y create-vite@latest dribbble-frontend --template react-ts
+   npm create vite@latest
    cd dribbble-frontend
    ```
 
