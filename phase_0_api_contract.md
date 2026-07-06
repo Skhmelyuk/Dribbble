@@ -353,25 +353,20 @@ image: <file>
 
 ### `GET /api/shots/:id/comments/` — Список коментарів
 
-**Відповідь `200 OK`:**
+**Відповідь `200 OK` (плоский масив):**
 ```json
-{
-  "count": 14,
-  "next": null,
-  "previous": null,
-  "results": [
-    {
-      "id": 1,
-      "text": "Amazing work!",
-      "author": {
-        "id": 2,
-        "username": "viewer",
-        "avatar": "https://..."
-      },
-      "created_at": "2025-06-07T11:00:00Z"
-    }
-  ]
-}
+[
+  {
+    "id": 1,
+    "text": "Amazing work!",
+    "author": {
+      "id": 2,
+      "username": "viewer",
+      "avatar": "https://..."
+    },
+    "created_at": "2025-06-07T11:00:00Z"
+  }
+]
 ```
 
 ---
@@ -391,7 +386,7 @@ image: <file>
 
 ---
 
-### `POST /api/users/:id/follow/` — Підписка / Відписка (toggle)
+### `POST /api/users/:username/follow/` — Підписка / Відписка (toggle)
 
 > 🔒 Потребує авторизації
 
@@ -405,7 +400,7 @@ image: <file>
 
 ---
 
-### `GET /api/users/:id/` — Публічний профіль користувача
+### `GET /api/users/:username/` — Публічний профіль користувача
 
 **Відповідь `200 OK`:**
 ```json
@@ -426,36 +421,13 @@ image: <file>
 
 ## Search API
 
-### `GET /api/search/?q=` — Пошук
+### Пошук робіт (Shots)
 
-**Параметри:**
-```
-?q=banking&type=shots    # тільки shots
-?q=john&type=users       # тільки users
-?q=mobile               # всі результати
-?limit=10&offset=0
-```
+Пошук робіт виконується безпосередньо через фільтрацію стрічки робіт за допомогою query-параметра `search`:
+`GET /api/shots/?search=banking`
 
-**Відповідь `200 OK`:**
-```json
-{
-  "shots": {
-    "count": 5,
-    "results": [ { ...Shot }, ... ]
-  },
-  "users": {
-    "count": 2,
-    "results": [
-      {
-        "id": 3,
-        "username": "john_designer",
-        "avatar": "https://...",
-        "bio": "Mobile UI Designer"
-      }
-    ]
-  }
-}
-```
+**Відповідь `200 OK`:** Пагінований список об'єктів Shot, які відповідають запиту.
+
 
 ---
 

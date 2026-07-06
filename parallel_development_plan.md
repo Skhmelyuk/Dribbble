@@ -14,12 +14,12 @@
 
 ### Інструменти координації
 
-| Інструмент | Призначення |
-|---|---|
-| **OpenAPI / Swagger** | Погодження API контракту (генерується через `drf-spectacular`) |
-| **MSW (Mock Service Worker)** | Фронтенд симулює API-відповіді в браузері |
-| **Postman / Bruno** | Тестування живого API бекенду |
-| **CORS** | Налаштовується на бекенді з першого дня |
+| Інструмент                    | Призначення                                                    |
+| ----------------------------- | -------------------------------------------------------------- |
+| **OpenAPI / Swagger**         | Погодження API контракту (генерується через `drf-spectacular`) |
+| **MSW (Mock Service Worker)** | Фронтенд симулює API-відповіді в браузері                      |
+| **Postman / Bruno**           | Тестування живого API бекенду                                  |
+| **CORS**                      | Налаштовується на бекенді з першого дня                        |
 
 ---
 
@@ -30,6 +30,7 @@
 ### Що потрібно узгодити:
 
 **Auth:**
+
 - `POST /api/auth/register/` — тіло запиту / відповідь
 - `POST /api/auth/login/` — формат JWT відповіді
 - `POST /api/auth/google/` — формат Google ID Token
@@ -37,12 +38,14 @@
 - `PATCH /api/auth/profile/` — які поля можна змінити
 
 **Shots:**
+
 - `GET /api/shots/` — структура Shot, пагінація (поля `next`, `results`)
 - `POST /api/shots/` — multipart/form-data або JSON + окремий upload?
 - `GET /api/shots/:id/` — детальний Shot з автором та тегами
 - `PATCH/DELETE /api/shots/:id/`
 
 **Social:**
+
 - `POST /api/shots/:id/like/` — відповідь після лайку
 - `GET /api/shots/:id/comments/` — структура коментаря
 - `POST /api/shots/:id/comments/`
@@ -50,6 +53,7 @@
 - `GET /api/search/?q=` — формат результатів
 
 ### Виходи Фази 0:
+
 - [ ] OpenAPI схема (або хоча б JSON-приклади для кожного ендпоінту)
 - [ ] Погоджений формат пагінації
 - [ ] Погоджений формат помилок (`{ "detail": "..." }` або `{ "error": "..." }`)
@@ -59,8 +63,8 @@
 
 ## Фаза 1: Налаштування та Авторизація
 
-
 ### 🔵 Бекенд
+
 - Налаштування Django + PostgreSQL + DRF
 - Custom User Model
 - JWT аутентифікація (`/register/`, `/login/`, `/token/refresh/`)
@@ -69,6 +73,7 @@
 - Базова документація через `drf-spectacular`
 
 ### 🟢 Фронтенд
+
 - Ініціалізація проєкту Vite + React + TypeScript
 - Роутинг (React Router v7 Data Mode)
 - UI Kit: Button, Input, базові компоненти
@@ -79,6 +84,7 @@
 - Верстка сторінок Login / Register / Profile
 
 ### ✅ Точка інтеграції (кінець Фази 1)
+
 - Фронтенд перемикає MSW → реальний бекенд
 - Тест: реєстрація → логін → перегляд профілю → редагування
 
@@ -89,12 +95,14 @@
 **Тривалість:** ~1 тиждень
 
 ### 🔵 Бекенд
+
 - Модель `Shot` з полями та тегами
-- Інтеграція S3 / Cloudinary для зберігання файлів
+- Інтеграція Cloudflare R2 для зберігання файлів
 - CRUD Shots API (`POST`, `GET`, `PATCH`, `DELETE`)
 - Глобальний Feed з пагінацією
 
 ### 🟢 Фронтенд
+
 - Компонент `ShotCard`
 - Головна сторінка Feed (grid layout + infinite scroll)
 - Сторінка завантаження Shot (форма + drag & drop)
@@ -102,6 +110,7 @@
 - **MSW моки для Shots API**
 
 ### ✅ Точка інтеграції (кінець Фази 2)
+
 - Тест: завантаження Shot → відображення у Feed → детальна сторінка
 
 ---
@@ -111,11 +120,13 @@
 **Тривалість:** ~1 тиждень
 
 ### 🔵 Бекенд
+
 - Моделі `Like`, `Comment`, `Follow`, `Favorite`
 - API ендпоінти для соціальних взаємодій
 - Пошук через `django-filter` + PostgreSQL full-text search
 
 ### 🟢 Фронтенд
+
 - Кнопки лайку та збереження (оптимістичне оновлення)
 - Секція коментарів
 - Кнопка Follow / Unfollow
@@ -123,6 +134,7 @@
 - **MSW моки для Social API**
 
 ### ✅ Точка інтеграції (кінець Фази 3)
+
 - Тест: лайкнути Shot → побачити зміну лічильника → підписатися на автора
 
 ---
@@ -132,18 +144,21 @@
 **Тривалість:** ~3-5 днів
 
 ### 🔵 Бекенд
+
 - Кешування Redis для Feed та лічильників
 - Валідація та безпека (rate limiting, CORS production)
 - Документація API (`drf-spectacular`)
 - Тести (юніт + інтеграційні)
 
 ### 🟢 Фронтенд
+
 - Адаптивність (Mobile First)
 - Анімації (Framer Motion)
 - Skeleton loaders + обробка помилок
 - Видалення MSW моків, фінальна інтеграція
 
 ### ✅ Точка інтеграції (кінець Фази 4)
+
 - Повне наскрізне тестування всіх flow
 - Перевірка на мобільних пристроях
 
@@ -175,39 +190,48 @@ src/mocks/
 ### Приклад хендлера `src/mocks/handlers/auth.ts`
 
 ```ts
-import { http, HttpResponse } from 'msw'
+import { http, HttpResponse } from "msw";
 
 export const authHandlers = [
-  http.post('/api/auth/login/', () =>
+  http.post("/api/auth/login/", () =>
     HttpResponse.json({
-      access: 'mock-access-token',
-      refresh: 'mock-refresh-token',
-      user: { id: 1, email: 'test@example.com', username: 'designer', avatar: null },
-    })
+      access: "mock-access-token",
+      refresh: "mock-refresh-token",
+      user: {
+        id: 1,
+        email: "test@example.com",
+        username: "designer",
+        avatar: null,
+      },
+    }),
   ),
 
-  http.get('/api/auth/profile/', () =>
+  http.get("/api/auth/profile/", () =>
     HttpResponse.json({
       id: 1,
-      email: 'test@example.com',
-      username: 'designer',
-      bio: 'UI/UX Designer',
+      email: "test@example.com",
+      username: "designer",
+      bio: "UI/UX Designer",
       avatar: null,
-      website: '',
-    })
+      website: "",
+    }),
   ),
-]
+];
 ```
 
 ### Підключення в `src/mocks/browser.ts`
 
 ```ts
-import { setupWorker } from 'msw/browser'
-import { authHandlers } from './handlers/auth'
-import { shotsHandlers } from './handlers/shots'
-import { socialHandlers } from './handlers/social'
+import { setupWorker } from "msw/browser";
+import { authHandlers } from "./handlers/auth";
+import { shotsHandlers } from "./handlers/shots";
+import { socialHandlers } from "./handlers/social";
 
-export const worker = setupWorker(...authHandlers, ...shotsHandlers, ...socialHandlers)
+export const worker = setupWorker(
+  ...authHandlers,
+  ...shotsHandlers,
+  ...socialHandlers,
+);
 ```
 
 ### Увімкнення тільки в development `src/main.tsx`
@@ -236,10 +260,10 @@ VITE_USE_MOCKS=true   # увімкнути MSW моки
 
 ## Зведена таблиця синхронізації
 
-| Фаза | Бекенд | Фронтенд | Точка інтеграції |
-|---|---|---|---|
-| **0** | Узгодження API контракту | Узгодження API контракту | OpenAPI схема |
-| **1** | Auth API + профіль | Auth UI + MSW моки | Login / Profile flow |
-| **2** | Shots CRUD + Feed | ShotCard + Feed + Upload | Публікація Shot |
-| **3** | Social + Search API | Лайки / Follow / Пошук | Соціальні взаємодії |
-| **4** | Redis + тести + документація | Mobile + анімації + фінальна інтеграція | Повний E2E тест |
+| Фаза  | Бекенд                       | Фронтенд                                | Точка інтеграції     |
+| ----- | ---------------------------- | --------------------------------------- | -------------------- |
+| **0** | Узгодження API контракту     | Узгодження API контракту                | OpenAPI схема        |
+| **1** | Auth API + профіль           | Auth UI + MSW моки                      | Login / Profile flow |
+| **2** | Shots CRUD + Feed            | ShotCard + Feed + Upload                | Публікація Shot      |
+| **3** | Social + Search API          | Лайки / Follow / Пошук                  | Соціальні взаємодії  |
+| **4** | Redis + тести + документація | Mobile + анімації + фінальна інтеграція | Повний E2E тест      |

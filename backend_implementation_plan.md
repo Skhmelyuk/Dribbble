@@ -2,7 +2,7 @@
 
 > ❌ Бекенд і фронтенд розробляються **паралельно**. Дивись `parallel_development_plan.md` для загальної координації, API контракту та точок інтеграції.
 
-**Технології:** Python, Django, Django Rest Framework (DRF), PostgreSQL, Redis, S3/Cloudinary.
+**Технології:** Python, Django, Django Rest Framework (DRF), PostgreSQL, Redis, Cloudflare R2.
 
 ---
 
@@ -59,7 +59,7 @@
 - **Модуль:** `Shots`
 
 ### 3. Зберігання файлів
-- Інтеграція **`django-storages`** для роботи з **AWS S3 / Cloudinary**
+- Інтеграція **`django-storages`** для роботи з **Cloudflare R2 (S3-compatible)**
 - Налаштування завантаження зображень та прев'ю при публікації Shot
 - **Модуль:** `Shots`
 

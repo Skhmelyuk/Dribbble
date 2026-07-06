@@ -1,100 +1,72 @@
-# Детальний опис Фази 1: Налаштування та Авторизація (Фронтенд)
+# Фаза 1: Налаштування та Авторизація (Фронтенд) — [СКОРИГОВАНА]
 
-Цей документ містить покрокову інструкцію для розробки фронтенд-частини **Фази 1 (Налаштування та Авторизація)** на базі React, TypeScript, Tailwind CSS v4.3, Zustand, TanStack Query v5 та React Router v7.
-
----
-
-## 1. Ініціалізація та структура папок
-
-1. **Створення проєкту за допомогою Vite:**
-   ```bash
-   npm create vite@latest
-   cd dribbble-frontend
-   ```
-
-2. **Встановлення необхідних залежностей:**
-   ```bash
-   npm install react-router@7.17.0 tailwindcss@4.3 @tailwindcss/vite clsx tailwind-merge axios zustand @tanstack/react-query@5
-   npm install --save-dev msw@latest
-   ```
-
-3. **Створення структури директорій:**
-   ```bash
-   mkdir -p src/{api,components/{ui,layout},hooks,pages,store,types,utils,mocks/handlers}
-   ```
-
-4. **Файл `.env`:**
-   ```env
-   VITE_API_BASE_URL=http://localhost:8000/api
-   VITE_USE_MOCKS=true   # true для роботи з MSW, false - для роботи з реальним бекендом
-   ```
+> Скориговано на основі аналізу дизайну Figma (design_analysis.md).
+> Назва проекту в дизайні: **Voxel** (Dribbble clone).
+> Стек: React + TypeScript + Tailwind CSS v4 + Zustand + TanStack Query v5 + React Router v7 + MSW.
 
 ---
 
-## 2. Налаштування Tailwind CSS v4.3
+## 1. Ініціалізація та залежності
 
-З версії v4 конфігурація здійснюється безпосередньо в CSS.
+```bash
+npm create vite@latest dribbble-frontend -- --template react-ts
+cd dribbble-frontend
+npm install react-router@7 tailwindcss@4 @tailwindcss/vite clsx tailwind-merge \
+    axios zustand @tanstack/react-query lucide-react
+npm install --save-dev msw@latest
+npx msw init public/ --save
+```
 
-1. **Додавання плагіну в `vite.config.ts`:**
-   ```typescript
-   import { defineConfig } from 'vite'
-   import react from '@vitejs/plugin-react'
-   import tailwindcss from '@tailwindcss/vite'
-
-   export default defineConfig({
-     plugins: [
-       react(),
-       tailwindcss(),
-     ],
-   })
-   ```
-
-2. **Конфігурація `src/index.css`:**
-   ```css
-   @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap');
-   @import "tailwindcss";
-
-   @theme {
-     /* Колірна палітра */
-     --color-primary: #EA4C89;
-     --color-primary-dark: #C73872;
-     --color-surface: #0F0F1A;
-     --color-surface-alt: #16162a;
-     --color-muted: #8E8EA0;
-     --color-border: #27273F;
-
-     /* Шрифти */
-     --font-sans: 'Outfit', sans-serif;
-   }
-
-   @layer base {
-     body {
-       background-color: var(--color-surface);
-       color: #F3F3F7;
-       font-family: var(--font-sans);
-       -webkit-font-smoothing: antialiased;
-     }
-   }
-   ```
-
-3. **Створення утиліти об'єднання класів `src/utils/cn.ts`:**
-   ```typescript
-   import { clsx, type ClassValue } from 'clsx'
-   import { twMerge } from 'tailwind-merge'
-
-   export const cn = (...inputs: ClassValue[]) => twMerge(clsx(inputs))
-   ```
+**.env:**
+```env
+VITE_API_BASE_URL=http://localhost:8000/api
+VITE_USE_MOCKS=true
+```
 
 ---
 
-## 3. Стейт-менеджмент (`src/store/authStore.ts`)
+## 2. Структура директорій
 
-Зберігає токени доступу та інформацію про авторизованого користувача в localStorage.
+```
+src/
+├── api/
+│   └── index.ts          # axios instance + interceptors
+├── components/
+│   ├── layout/
+│   │   └── Layout.tsx    # Wrapper з <Navbar /> + <Outlet />
+│   └── ui/
+│       ├── Button.tsx
+│       ├── Input.tsx
+│       ├── Logo.tsx       # Лого "Voxel" (svg + text)
+│       └── Avatar.tsx     # Аватар з fallback
+├── hooks/
+│   └── useAuth.ts
+├── mocks/
+│   ├── browser.ts
+│   └── handlers/
+│       └── auth.ts
+├── pages/
+│   ├── auth/
+│   │   ├── LoginPage.tsx
+│   │   ├── RegisterPage.tsx
+│   │   ├── ForgotPasswordPage.tsx      # НОВА — з дизайну
+│   │   └── ForgotPasswordConfirmPage.tsx # НОВА — з дизайну
+│   ├── ProfilePage.tsx   # Перенесено у Фазу 2 (публічний профіль)
+│   ├── SettingsPage.tsx  # НОВА — налаштування акаунту
+│   └── NotFoundPage.tsx
+├── store/
+│   └── authStore.ts
+├── types/
+│   └── user.ts
+└── utils/
+    └── cn.ts
+```
+
+---
+
+## 3. Типи (`src/types/user.ts`)
 
 ```typescript
-import { create } from 'zustand'
-import { persist } from 'zustand/middleware'
-
 export interface User {
   id: number
   email: string
@@ -105,7 +77,36 @@ export interface User {
   twitter?: string
   instagram?: string
   linkedin?: string
+  shots_count?: number
+  followers_count?: number
+  following_count?: number
 }
+
+// Публічний профіль (без email)
+export interface PublicUser {
+  id: number
+  username: string
+  avatar: string | null
+  bio: string
+  website: string
+  twitter: string
+  instagram: string
+  linkedin: string
+  shots_count: number
+  followers_count: number
+  following_count: number
+  is_following: boolean
+}
+```
+
+---
+
+## 4. Auth Store (`src/store/authStore.ts`)
+
+```typescript
+import { create } from 'zustand'
+import { persist } from 'zustand/middleware'
+import { User } from '../types/user'
 
 interface AuthState {
   user: User | null
@@ -122,26 +123,22 @@ export const useAuthStore = create<AuthState>()(
       user: null,
       accessToken: null,
       refreshToken: null,
-      setAuth: (user, accessToken, refreshToken) => 
+      setAuth: (user, accessToken, refreshToken) =>
         set({ user, accessToken, refreshToken }),
-      updateUser: (updatedUser) => 
+      updateUser: (updatedUser) =>
         set((state) => ({
           user: state.user ? { ...state.user, ...updatedUser } : null
         })),
       logout: () => set({ user: null, accessToken: null, refreshToken: null }),
     }),
-    {
-      name: 'dribbble-auth',
-    }
+    { name: 'dribbble-auth' }
   )
 )
 ```
 
 ---
 
-## 4. Axios Клієнт (`src/api/index.ts`)
-
-Організація клієнта з автоматичним підписом Authorization заголовку та обробкою помилок авторизації (401).
+## 5. Axios Клієнт (`src/api/index.ts`)
 
 ```typescript
 import axios from 'axios'
@@ -149,12 +146,9 @@ import { useAuthStore } from '../store/authStore'
 
 export const api = axios.create({
   baseURL: import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000/api',
-  headers: {
-    'Content-Type': 'application/json',
-  },
+  headers: { 'Content-Type': 'application/json' },
 })
 
-// Додавання токену до запитів
 api.interceptors.request.use((config) => {
   const token = useAuthStore.getState().accessToken
   if (token && config.headers) {
@@ -163,7 +157,6 @@ api.interceptors.request.use((config) => {
   return config
 })
 
-// Перехоплення 401 та спроба оновлення токену
 api.interceptors.response.use(
   (response) => response,
   async (error) => {
@@ -171,22 +164,15 @@ api.interceptors.response.use(
     if (error.response?.status === 401 && !originalRequest._retry) {
       originalRequest._retry = true
       const refresh = useAuthStore.getState().refreshToken
-
       if (refresh) {
         try {
-          // Запит на оновлення токену без JWT-перехоплювача
           const { data } = await axios.post(`${api.defaults.baseURL}/auth/token/refresh/`, { refresh })
-          useAuthStore.getState().setAuth(
-            useAuthStore.getState().user!,
-            data.access,
-            refresh
-          )
+          useAuthStore.getState().setAuth(useAuthStore.getState().user!, data.access, refresh)
           originalRequest.headers.Authorization = `Bearer ${data.access}`
           return api(originalRequest)
-        } catch (refreshError) {
+        } catch {
           useAuthStore.getState().logout()
           window.location.href = '/login'
-          return Promise.reject(refreshError)
         }
       } else {
         useAuthStore.getState().logout()
@@ -200,280 +186,251 @@ api.interceptors.response.use(
 
 ---
 
-## 5. Налаштування Mock Service Worker (MSW)
-
-Це дозволяє фронтенду працювати незалежно від готовності бекенду.
-
-1. **Ініціалізація service worker файлу у теці public:**
-   ```bash
-   npx msw init public/ --save
-   ```
-
-2. **Реалізація мокових хендлерів авторизації (`src/mocks/handlers/auth.ts`):**
-   ```typescript
-   import { http, HttpResponse } from 'msw'
-
-   const BASE_URL = 'http://localhost:8000/api'
-
-   // Локальна in-memory база даних для розробки
-   let mockUser = {
-     id: 1,
-     email: 'designer@example.com',
-     username: 'kyiv_creator',
-     avatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=150&h=150&q=80',
-     bio: 'UI/UX Designer & Illustrator from Kyiv',
-     website: 'https://portfolio.com',
-     twitter: 'https://twitter.com/kyiv_creator',
-     instagram: 'https://instagram.com/kyiv_creator',
-     linkedin: 'https://linkedin.com/in/kyiv_creator',
-     shots_count: 0,
-     followers_count: 0,
-     following_count: 0
-   }
-
-   let isRegistered = false
-
-   export const authHandlers = [
-     // Реєстрація
-     http.post(`${BASE_URL}/auth/register/`, async ({ request }) => {
-       const body = (await request.json()) as any
-       if (!body.email || !body.username || !body.password) {
-         return HttpResponse.json({ detail: 'Не всі обовʼязкові поля заповнено.' }, { status: 400 })
-       }
-       
-       isRegistered = true
-       mockUser.email = body.email
-       mockUser.username = body.username
-       return HttpResponse.json({
-         id: mockUser.id,
-         email: mockUser.email,
-         username: mockUser.username
-       }, { status: 201 })
-     }),
-
-     // Логін
-     http.post(`${BASE_URL}/auth/login/`, async ({ request }) => {
-       const body = (await request.json()) as any
-       if (body.email === mockUser.email || body.email === 'designer@example.com') {
-         return HttpResponse.json({
-           access: 'mock-access-token-jwt-12345',
-           refresh: 'mock-refresh-token-jwt-67890'
-         }, { status: 200 })
-       }
-       return HttpResponse.json({ detail: 'Невірні облікові дані.' }, { status: 401 })
-     }),
-
-     // Refresh Token
-     http.post(`${BASE_URL}/auth/token/refresh/`, async () => {
-       return HttpResponse.json({
-         access: 'new-mock-access-token-jwt-' + Math.random().toString(36).substr(2, 9)
-       }, { status: 200 })
-     }),
-
-     // Google OAuth
-     http.post(`${BASE_URL}/auth/google/`, async ({ request }) => {
-       const body = (await request.json()) as any
-       if (!body.token) {
-         return HttpResponse.json({ detail: 'Token is required' }, { status: 400 })
-       }
-       return HttpResponse.json({
-         access: 'google-mock-access-token',
-         refresh: 'google-mock-refresh-token',
-         created: !isRegistered
-       }, { status: 200 })
-     }),
-
-     // Отримання профілю
-     http.get(`${BASE_URL}/auth/profile/`, ({ request }) => {
-       const authHeader = request.headers.get('Authorization')
-       if (!authHeader || !authHeader.startsWith('Bearer ')) {
-         return HttpResponse.json({ detail: 'Улікові дані не надано.' }, { status: 401 })
-       }
-       return HttpResponse.json(mockUser, { status: 200 })
-     }),
-
-     // Оновлення профілю
-     http.patch(`${BASE_URL}/auth/profile/`, async ({ request }) => {
-       const authHeader = request.headers.get('Authorization')
-       if (!authHeader || !authHeader.startsWith('Bearer ')) {
-         return HttpResponse.json({ detail: 'Улікові дані не надано.' }, { status: 401 })
-       }
-
-       const contentType = request.headers.get('Content-Type')
-       
-       if (contentType?.includes('multipart/form-data')) {
-         const formData = await request.formData()
-         const avatarFile = formData.get('avatar') as File
-         if (avatarFile) {
-           mockUser.avatar = URL.createObjectURL(avatarFile)
-         }
-         for (const [key, value] of formData.entries()) {
-           if (key !== 'avatar' && key in mockUser) {
-             (mockUser as any)[key] = value
-           }
-         }
-       } else {
-         const body = (await request.json()) as any
-         mockUser = { ...mockUser, ...body }
-       }
-
-       return HttpResponse.json(mockUser, { status: 200 })
-     })
-   ]
-   ```
-
-3. **Створення файлу конфігурації воркера (`src/mocks/browser.ts`):**
-   ```typescript
-   import { setupWorker } from 'msw/browser'
-   import { authHandlers } from './handlers/auth'
-
-   export const worker = setupWorker(...authHandlers)
-   ```
-
----
-
-## 6. Конфігурація Роутингу (React Router v7.17.0)
-
-Реалізація роутера (`src/router.tsx`) з захистом маршрутів (Auth Guards).
+## 6. Роутинг (`src/router.tsx`)
 
 ```typescript
-import { createBrowserRouter, redirect } from 'react-router'
+import { createBrowserRouter, Navigate, Outlet, redirect } from 'react-router'
 import { Layout } from './components/layout/Layout'
 import { useAuthStore } from './store/authStore'
 
-// Захищає приватні маршрути
-const authLoader = () => {
-  const token = useAuthStore.getState().accessToken
-  if (!token) throw redirect('/login')
-  return null
+const ProtectedRoute = () => {
+  const token = useAuthStore((s) => s.accessToken)
+  return token ? <Outlet /> : <Navigate to="/login" replace />
 }
 
-// Захищає гостьові маршрути
-const guestLoader = () => {
-  const token = useAuthStore.getState().accessToken
-  if (token) throw redirect('/profile')
-  return null
+const GuestRoute = () => {
+  const token = useAuthStore((s) => s.accessToken)
+  return token ? <Navigate to="/feed" replace /> : <Outlet />
 }
 
 export const router = createBrowserRouter([
   {
     path: '/',
-    loader: () => redirect('/login'),
+    loader: () => {
+      const token = useAuthStore.getState().accessToken
+      throw redirect(token ? '/feed' : '/login')
+    },
   },
+
+  // ─── Auth (Guest only) ────────────────────────────────────
   {
-    path: '/login',
-    loader: guestLoader,
-    lazy: () => import('./pages/LoginPage').then((m) => ({ Component: m.LoginPage })),
-  },
-  {
-    path: '/register',
-    loader: guestLoader,
-    lazy: () => import('./pages/RegisterPage').then((m) => ({ Component: m.RegisterPage })),
-  },
-  {
-    Component: Layout,
+    Component: GuestRoute,
     children: [
       {
-        path: '/profile',
-        loader: authLoader,
-        lazy: () => import('./pages/ProfilePage').then((m) => ({ Component: m.ProfilePage })),
+        path: '/login',
+        lazy: () => import('./pages/auth/LoginPage').then((m) => ({ Component: m.LoginPage })),
+      },
+      {
+        path: '/register',
+        lazy: () => import('./pages/auth/RegisterPage').then((m) => ({ Component: m.RegisterPage })),
+      },
+      {
+        path: '/forgot-password',
+        lazy: () => import('./pages/auth/ForgotPasswordPage').then((m) => ({ Component: m.ForgotPasswordPage })),
+      },
+      {
+        path: '/forgot-password/confirm',
+        lazy: () => import('./pages/auth/ForgotPasswordConfirmPage').then((m) => ({ Component: m.ForgotPasswordConfirmPage })),
       },
     ],
   },
+
+  // ─── Protected (Auth required) ────────────────────────────
+  {
+    Component: ProtectedRoute,
+    children: [
+      {
+        Component: Layout,
+        children: [
+          {
+            path: '/settings',
+            lazy: () => import('./pages/SettingsPage').then((m) => ({ Component: m.SettingsPage })),
+          },
+          // Фаза 2+ сторінки (будуть додані пізніше)
+          // /feed, /upload, /shot/:id, /profile/:username
+        ],
+      },
+    ],
+  },
+
+  { path: '*', lazy: () => import('./pages/NotFoundPage').then((m) => ({ Component: m.NotFoundPage })) },
 ])
 ```
 
 ---
 
-## 7. Ініціалізація Додатку та MSW (`src/main.tsx`)
+## 7. MSW Mock Handlers (`src/mocks/handlers/auth.ts`)
 
 ```typescript
-import React from 'react'
-import ReactDOM from 'react-dom/client'
-import { RouterProvider } from 'react-router'
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
-import { router } from './router'
-import './index.css'
+import { http, HttpResponse } from 'msw'
 
-const queryClient = new QueryClient({
-  defaultOptions: {
-    queries: {
-      staleTime: 1000 * 60 * 5, // 5 хвилин
-      gcTime: 1000 * 60 * 10,  // v5: 10 хвилин життя неактивного кешу
-      retry: 1,
-      refetchOnWindowFocus: false,
-    },
-  },
-})
+const BASE_URL = 'http://localhost:8000/api'
 
-async function enableMocking() {
-  if (import.meta.env.DEV && import.meta.env.VITE_USE_MOCKS === 'true') {
-    const { worker } = await import('./mocks/browser')
-    return worker.start({
-      onUnhandledRequest: 'bypass',
-    })
-  }
+let mockUser = {
+  id: 1,
+  email: 'designer@example.com',
+  username: 'kyiv_creator',
+  avatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=150&h=150&q=80',
+  bio: 'UI/UX Designer from Kyiv',
+  website: 'https://portfolio.com',
+  twitter: '',
+  instagram: '',
+  linkedin: '',
+  shots_count: 0,
+  followers_count: 0,
+  following_count: 0
 }
 
-enableMocking().then(() => {
-  ReactDOM.createRoot(document.getElementById('root')!).render(
-    <React.StrictMode>
-      <QueryClientProvider client={queryClient}>
-        <RouterProvider router={router} />
-      </QueryClientProvider>
-    </React.StrictMode>
-  )
-})
+export const authHandlers = [
+  // Реєстрація
+  http.post(`${BASE_URL}/auth/register/`, async ({ request }) => {
+    const body = (await request.json()) as any
+    if (!body.email || !body.username || !body.password) {
+      return HttpResponse.json({ detail: 'Не всі обов\'язкові поля заповнено.' }, { status: 400 })
+    }
+    mockUser.email = body.email
+    mockUser.username = body.username
+    return HttpResponse.json({ id: mockUser.id, email: mockUser.email, username: mockUser.username }, { status: 201 })
+  }),
+
+  // Логін
+  http.post(`${BASE_URL}/auth/login/`, async ({ request }) => {
+    const body = (await request.json()) as any
+    if (body.email === mockUser.email || body.email === 'designer@example.com') {
+      return HttpResponse.json({ access: 'mock-access-token', refresh: 'mock-refresh-token' }, { status: 200 })
+    }
+    return HttpResponse.json({ detail: 'Невірні облікові дані.' }, { status: 401 })
+  }),
+
+  // Refresh Token
+  http.post(`${BASE_URL}/auth/token/refresh/`, async () => {
+    return HttpResponse.json({ access: 'new-mock-access-token-' + Date.now() }, { status: 200 })
+  }),
+
+  // Google OAuth
+  http.post(`${BASE_URL}/auth/google/`, async () => {
+    return HttpResponse.json({ access: 'google-mock-token', refresh: 'google-mock-refresh', created: false }, { status: 200 })
+  }),
+
+  // Свій профіль — GET
+  http.get(`${BASE_URL}/auth/profile/`, ({ request }) => {
+    if (!request.headers.get('Authorization')?.startsWith('Bearer ')) {
+      return HttpResponse.json({ detail: 'Не авторизовано.' }, { status: 401 })
+    }
+    return HttpResponse.json(mockUser, { status: 200 })
+  }),
+
+  // Свій профіль — PATCH
+  http.patch(`${BASE_URL}/auth/profile/`, async ({ request }) => {
+    if (!request.headers.get('Authorization')?.startsWith('Bearer ')) {
+      return HttpResponse.json({ detail: 'Не авторизовано.' }, { status: 401 })
+    }
+    const contentType = request.headers.get('Content-Type')
+    if (contentType?.includes('multipart/form-data')) {
+      const formData = await request.formData()
+      const avatarFile = formData.get('avatar') as File
+      if (avatarFile) mockUser.avatar = URL.createObjectURL(avatarFile)
+      for (const [key, value] of formData.entries()) {
+        if (key !== 'avatar' && key in mockUser) (mockUser as any)[key] = value
+      }
+    } else {
+      const body = (await request.json()) as any
+      mockUser = { ...mockUser, ...body }
+    }
+    return HttpResponse.json(mockUser, { status: 200 })
+  }),
+
+  // Публічний профіль — GET /api/users/:username/
+  http.get(`${BASE_URL}/users/:username/`, ({ params }) => {
+    if (params.username === mockUser.username) {
+      const { email, ...publicUser } = mockUser
+      return HttpResponse.json({ ...publicUser, is_following: false }, { status: 200 })
+    }
+    return HttpResponse.json({ detail: 'Користувача не знайдено.' }, { status: 404 })
+  }),
+
+  // Зміна паролю
+  http.post(`${BASE_URL}/auth/password/change/`, async ({ request }) => {
+    if (!request.headers.get('Authorization')?.startsWith('Bearer ')) {
+      return HttpResponse.json({ detail: 'Не авторизовано.' }, { status: 401 })
+    }
+    return HttpResponse.json({ detail: 'Пароль успішно змінено.' }, { status: 200 })
+  }),
+
+  // Password Reset (email)
+  http.post(`${BASE_URL}/auth/password/reset/`, async () => {
+    return HttpResponse.json({ detail: 'Інструкції надіслано на email.' }, { status: 200 })
+  }),
+
+  // Password Reset Confirm
+  http.post(`${BASE_URL}/auth/password/reset/confirm/`, async () => {
+    return HttpResponse.json({ detail: 'Пароль успішно скинуто.' }, { status: 200 })
+  }),
+]
 ```
 
 ---
 
-## 8. Створення базових UI компонентів
+## 8. Компоненти UI
 
-#### Кнопка (`src/components/ui/Button.tsx`):
+### `src/components/ui/Logo.tsx`
+```typescript
+// Компонент Лого "Voxel" — відповідає дизайну Figma
+// Стиліст відповідає за точне відтворення SVG іконки та шрифту
+
+export const Logo = ({ size = 'md' }: { size?: 'sm' | 'md' | 'lg' }) => {
+  const sizeMap = { sm: 'w-6 h-6', md: 'w-10 h-10', lg: 'w-16 h-16' }
+  return (
+    <div className="flex flex-col items-center gap-1">
+      {/* SVG іконка Voxel (кольорова спіраль/орбіта) */}
+      <div className={sizeMap[size]}>
+        {/* TODO: замінити на реальний SVG з Figma */}
+        <svg viewBox="0 0 40 40" fill="none">
+          <circle cx="20" cy="20" r="18" stroke="#EA4C89" strokeWidth="2" />
+        </svg>
+      </div>
+      <span className="font-black text-xl tracking-tight">Voxel</span>
+    </div>
+  )
+}
+```
+
+### `src/components/ui/Button.tsx`
 ```typescript
 import { ButtonHTMLAttributes } from 'react'
 import { cn } from '../../utils/cn'
 
 interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
-  variant?: 'primary' | 'secondary' | 'ghost'
+  variant?: 'primary' | 'secondary' | 'ghost' | 'google'
   size?: 'sm' | 'md' | 'lg'
   isLoading?: boolean
 }
 
-export const Button = ({
-  variant = 'primary',
-  size = 'md',
-  isLoading,
-  className,
-  children,
-  ...props
-}: ButtonProps) => {
+export const Button = ({ variant = 'primary', size = 'md', isLoading, className, children, ...props }: ButtonProps) => {
   return (
     <button
       disabled={isLoading || props.disabled}
       className={cn(
         'inline-flex items-center justify-center rounded-full font-semibold transition-all duration-200 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed',
-        variant === 'primary' && 'bg-primary text-white hover:bg-primary-dark shadow-md hover:shadow-primary/20',
-        variant === 'secondary' && 'border border-border text-white hover:bg-surface-alt',
-        variant === 'ghost' && 'text-muted hover:text-white hover:bg-surface-alt/50',
+        variant === 'primary' && 'bg-voxel-teal text-voxel-black hover:bg-voxel-cyan hover:shadow-lg hover:shadow-voxel-teal/20',
+        variant === 'secondary' && 'border border-voxel-gray-dark text-voxel-white hover:bg-voxel-white/10',
+        variant === 'ghost' && 'text-voxel-gray hover:text-voxel-white hover:bg-voxel-white/5',
+        variant === 'google' && 'border border-voxel-gray-dark bg-voxel-white/5 text-voxel-white hover:bg-voxel-white/10',
         size === 'sm' && 'px-4 py-1.5 text-xs',
-        size === 'md' && 'px-6 py-2.5 text-sm',
-        size === 'lg' && 'px-8 py-3 text-base',
+        size === 'md' && 'px-6 py-3 text-sm',
+        size === 'lg' && 'px-8 py-3.5 text-base',
         className
       )}
       {...props}
     >
-      {isLoading ? (
-        <span className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin mr-2" />
-      ) : null}
+      {isLoading && <span className="w-4 h-4 border-2 border-voxel-black/30 border-t-voxel-black rounded-full animate-spin mr-2" />}
       {children}
     </button>
   )
 }
 ```
 
-#### Поле введення (`src/components/ui/Input.tsx`):
+### `src/components/ui/Input.tsx`
 ```typescript
 import { InputHTMLAttributes } from 'react'
 import { cn } from '../../utils/cn'
@@ -483,19 +440,21 @@ interface InputProps extends InputHTMLAttributes<HTMLInputElement> {
   error?: string
 }
 
-export const Input = ({ label, error, className, ...props }: InputProps) => {
+export const Input = ({ label, error, className, id, ...props }: InputProps) => {
+  const inputId = id || label?.toLowerCase().replace(/\s+/g, '-')
   return (
     <div className="flex flex-col gap-1.5 w-full">
-      {label && <label className="text-xs font-medium text-muted tracking-wide">{label}</label>}
+      {label && <label htmlFor={inputId} className="text-xs font-medium text-voxel-gray tracking-wide">{label}</label>}
       <input
+        id={inputId}
         className={cn(
-          'w-full rounded-2xl bg-surface-alt border border-border px-4 py-3 text-sm text-white placeholder:text-gray-600 focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-all duration-200',
-          error && 'border-red-500 focus:border-red-500 focus:ring-red-500',
+          'w-full rounded-xl border border-voxel-gray-dark bg-voxel-white/5 px-4 py-3 text-sm text-voxel-white placeholder:text-voxel-gray focus:outline-none focus:border-voxel-teal focus:ring-1 focus:ring-voxel-teal transition-all duration-200',
+          error && 'border-voxel-red focus:border-voxel-red focus:ring-voxel-red',
           className
         )}
         {...props}
       />
-      {error && <span className="text-xs text-red-500 mt-0.5">{error}</span>}
+      {error && <span className="text-xs text-voxel-red mt-0.5">{error}</span>}
     </div>
   )
 }
@@ -503,274 +462,167 @@ export const Input = ({ label, error, className, ...props }: InputProps) => {
 
 ---
 
-## 9. Сторінки авторизації та профілю (UI)
+## 9. Сторінки Auth
 
-#### `src/pages/LoginPage.tsx`:
+### `src/pages/auth/LoginPage.tsx`
+Компоненти:
+- Фоновий image (пейзаж — природа) — `<img src={heroBackground} className="fixed inset-0 w-full h-full object-cover" />`
+- Glassmorphism card: `backdrop-blur-xl bg-voxel-white/20 border border-voxel-white/30 rounded-3xl p-10`
+- `<Logo />` — зверху по центру
+- H1: "Welcome back"
+- `<Button variant="google">` — "Login with Google account" з Google icon
+- Роздільник: `<div>or</div>`
+- `<Input type="email" placeholder="Enter email address" />`
+- `<Input type="password" placeholder="Enter your password" />`
+- `<Button variant="primary" className="w-full">` — "Continue"
+- Text: "By continuing, you agree to our Terms and Privacy Policy."
+- Link: "Don't have an account? Sign up"
+
+**Дані від бекенду:** `POST /api/auth/login/` → `{ access, refresh }`, потім `GET /api/auth/profile/`
+
+### `src/pages/auth/RegisterPage.tsx`
+- Фоновий image (пейзаж — природа)
+- Glassmorphism card: `backdrop-blur-xl bg-voxel-white/20 border border-voxel-white/30 rounded-3xl p-10`
+- `<Logo />`
+- H1: "Create your account"
+- `<Button variant="google">` — "Sign up with Google"
+- Роздільник: `<div>or</div>`
+- `<Input type="text" placeholder="Username" />`
+- `<Input type="email" placeholder="Enter email address" />`
+- `<Input type="password" placeholder="Create password" />`
+- `<Input type="password" placeholder="Confirm password" />`
+- `<Button variant="primary" className="w-full">` — "Create account"
+- Link: "Already have an account? Sign in"
+
+**Дані від бекенду:** `POST /api/auth/register/`
+
+### `src/pages/auth/ForgotPasswordPage.tsx`
+- Фоновий image
+- Glassmorphism card: `backdrop-blur-xl bg-voxel-white/20 border border-voxel-white/30 rounded-3xl p-10`
+- `<Logo />`
+- H1: "Reset your password"
+- `<Input type="email" placeholder="Enter your email" />`
+- `<Button variant="primary" className="w-full">` — "Send recovery link"
+- Link: "← Back to Sign in"
+
+**Дані від бекенду:** `POST /api/auth/password/reset/` (надсилає лист із посиланням, що містить `uid` та `token`)
+
+### `src/pages/auth/ForgotPasswordConfirmPage.tsx`
+- Фоновий image
+- Glassmorphism card: `backdrop-blur-xl bg-voxel-white/20 border border-voxel-white/30 rounded-3xl p-10`
+- `<Logo />`
+- URL-шлях: `/forgot-password/confirm?uid=...&token=...` (зчитує `uid` та `token` з URL)
+- H1: "Set new password"
+- `<Input type="password" placeholder="New password" />`
+- `<Input type="password" placeholder="Confirm new password" />`
+- `<Button variant="primary" className="w-full">` — "Reset password"
+- Link: "← Back to Sign in"
+
+**Дані від бекенду:** `POST /api/auth/password/reset/confirm/` (надсилає `{ uid, token, new_password1, new_password2 }`)
+
+---
+
+## 10. Settings Page (`src/pages/SettingsPage.tsx`)
+
+Сторінка з налаштуваннями акаунту. Відповідно до Figma — форма у карточці.
+
+**Компоненти:**
+- `<Layout />` (Navbar вже є)
+- `<AvatarUploader />` — аватар + кнопка зміни
+- `<Input disabled />` — username (не редагується)
+- `<Input disabled />` — email (не редагується)
+- `<Textarea />` — bio
+- `<Input type="url" />` — website
+- `<Input type="url" />` — twitter, instagram, linkedin
+- `<Button>` — "Save changes"
+- Секція зміни паролю: old_password, new_password, confirm
+- `<Button>` — "Change password"
+
+**Дані від бекенду:**
+- `GET /api/auth/profile/` — початкове заповнення форми
+- `PATCH /api/auth/profile/` — збереження (multipart якщо є аватар)
+- `POST /api/auth/password/change/` — зміна паролю
+
+---
+
+## 11. Layout (`src/components/layout/Layout.tsx`)
+
 ```typescript
-import React, { useState } from 'react'
-import { Link, useNavigate } from 'react-router'
-import { useMutation } from '@tanstack/react-query'
-import { api } from '../api'
-import { useAuthStore } from '../store/authStore'
-import { Button } from '../components/ui/Button'
-import { Input } from '../components/ui/Input'
+import { Outlet } from 'react-router'
+import { Navbar } from './Navbar'
 
-export const LoginPage = () => {
-  const [email, setEmail] = useState('')
-  const [password, setPassword] = useState('')
-  const [error, setError] = useState('')
-  const setAuth = useAuthStore((state) => state.setAuth)
-  const navigate = useNavigate()
-
-  const loginMutation = useMutation({
-    mutationFn: async () => {
-      const response = await api.post('/auth/login/', { email, password })
-      return response.data
-    },
-    onSuccess: async (data) => {
-      const profileResponse = await api.get('/auth/profile/', {
-        headers: { Authorization: `Bearer ${data.access}` }
-      })
-      setAuth(profileResponse.data, data.access, data.refresh)
-      navigate('/profile')
-    },
-    onError: (err: any) => {
-      setError(err.response?.data?.detail || 'Невірна пошта або пароль')
-    }
-  })
-
-  const handleGoogleLogin = () => {
-    api.post('/auth/google/', { token: 'mock-google-id-token' })
-      .then(async ({ data }) => {
-        const profileResponse = await api.get('/auth/profile/', {
-          headers: { Authorization: `Bearer ${data.access}` }
-        })
-        setAuth(profileResponse.data, data.access, data.refresh)
-        navigate('/profile')
-      })
-  }
-
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault()
-    loginMutation.mutate()
-  }
-
-  return (
-    <div className="min-h-screen flex items-center justify-center px-4 bg-surface">
-      <div className="w-full max-w-md bg-surface-alt border border-border rounded-3xl p-8 shadow-xl">
-        <h2 className="text-3xl font-extrabold text-white text-center mb-2">Вхід у Dribbble</h2>
-        <p className="text-sm text-muted text-center mb-8">Будь ласка, введіть ваші дані для входу</p>
-
-        {error && <div className="p-4 mb-4 text-sm bg-red-950/30 border border-red-500/50 text-red-400 rounded-2xl">{error}</div>}
-
-        <form onSubmit={handleSubmit} className="flex flex-col gap-5">
-          <Input
-            label="Email"
-            type="email"
-            placeholder="name@example.com"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            required
-          />
-          <Input
-            label="Пароль"
-            type="password"
-            placeholder="••••••••"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            required
-          />
-          <Button type="submit" isLoading={loginMutation.isPending} className="w-full mt-2">
-            Увійти
-          </Button>
-        </form>
-
-        <div className="relative my-6 text-center">
-          <span className="absolute inset-x-0 top-1/2 border-t border-border -z-10" />
-          <span className="bg-surface-alt px-3 text-xs text-muted font-medium uppercase">або</span>
-        </div>
-
-        <Button onClick={handleGoogleLogin} variant="secondary" className="w-full justify-center">
-          <svg className="w-5 h-5 mr-2" viewBox="0 0 24 24">
-            <path fill="currentColor" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" />
-            <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" />
-            <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z" />
-            <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.64l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" />
-          </svg>
-          Увійти через Google
-        </Button>
-      </div>
-    </div>
-  )
-}
+export const Layout = () => (
+  <div className="min-h-screen bg-voxel-black text-voxel-white">
+    <Navbar />
+    <main>
+      <Outlet />
+    </main>
+  </div>
+)
 ```
 
-#### `src/pages/ProfilePage.tsx`:
+### `src/components/layout/Navbar.tsx`
+**З дизайну Figma — Navbar містить:**
+- Ліво: `<Logo size="sm" />`
+- Центр: search input + navigation links (Inspiration, Find work, Learn)
+- Право (гість): Sign in + Sign up кнопки
+- Право (авторизований): Upload button + Avatar dropdown (Profile, Settings, Logout)
+
 ```typescript
-import React, { useState } from 'react'
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import { api } from '../api'
-import { useAuthStore } from '../store/authStore'
-import { Button } from '../components/ui/Button'
-import { Input } from '../components/ui/Input'
+import { Link } from 'react-router'
+import { useAuthStore } from '../../store/authStore'
+import { Logo } from '../ui/Logo'
+import { Upload } from 'lucide-react'
 
-export const ProfilePage = () => {
-  const queryClient = useQueryClient()
-  const { user, updateUser, logout } = useAuthStore()
-
-  const [bio, setBio] = useState(user?.bio || '')
-  const [website, setWebsite] = useState(user?.website || '')
-  const [avatarFile, setAvatarFile] = useState<File | null>(null)
-  const [avatarPreview, setAvatarPreview] = useState<string | null>(user?.avatar || null)
-  const [successMsg, setSuccessMsg] = useState('')
-
-  const { data: profile, isLoading } = useQuery({
-    queryKey: ['profile'],
-    queryFn: async () => {
-      const { data } = await api.get('/auth/profile/')
-      return data
-    }
-  })
-
-  const updateMutation = useMutation({
-    mutationFn: async () => {
-      const formData = new FormData()
-      formData.append('bio', bio)
-      formData.append('website', website)
-      if (avatarFile) {
-        formData.append('avatar', avatarFile)
-      }
-
-      const { data } = await api.patch('/auth/profile/', formData, {
-        headers: {
-          'Content-Type': 'multipart/form-data',
-        },
-      })
-      return data
-    },
-    onSuccess: (data) => {
-      updateUser(data)
-      setSuccessMsg('Профіль успішно оновлено!')
-      queryClient.invalidateQueries({ queryKey: ['profile'] })
-      setTimeout(() => setSuccessMsg(''), 3000)
-    }
-  })
-
-  const handleAvatarChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0]
-    if (file) {
-      setAvatarFile(file)
-      setAvatarPreview(URL.createObjectURL(file))
-    }
-  }
-
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault()
-    updateMutation.mutate()
-  }
-
-  if (isLoading) {
-    return (
-      <div className="min-h-[60vh] flex items-center justify-center">
-        <span className="w-10 h-10 border-4 border-primary/20 border-t-primary rounded-full animate-spin" />
-      </div>
-    )
-  }
+export const Navbar = () => {
+  const { user, logout } = useAuthStore()
 
   return (
-    <div className="max-w-2xl mx-auto py-12 px-4">
-      <div className="bg-surface-alt border border-border rounded-3xl p-8 shadow-xl">
-        <div className="flex justify-between items-center mb-8">
-          <h1 className="text-3xl font-extrabold text-white">Мій Профіль</h1>
-          <Button onClick={logout} variant="ghost" size="sm">Вийти</Button>
+    <header className="sticky top-0 z-50 border-b border-gray-200 bg-white/80 backdrop-blur-sm">
+      <div className="max-w-7xl mx-auto px-4 h-16 flex items-center justify-between gap-6">
+        {/* Logo */}
+        <Link to="/feed"><Logo size="sm" /></Link>
+
+        {/* Navigation */}
+        <nav className="hidden md:flex items-center gap-6 text-sm text-gray-600">
+          <Link to="/feed" className="hover:text-gray-900">Inspiration</Link>
+          <a href="#" className="hover:text-gray-900">Find work</a>
+          <a href="#" className="hover:text-gray-900">Learn</a>
+        </nav>
+
+        {/* Search */}
+        <div className="flex-1 max-w-xs hidden md:block">
+          {/* Пошук — імплементується у Фазі 2 */}
+          <input placeholder="Search..." className="w-full rounded-full border border-gray-200 px-4 py-2 text-sm" />
         </div>
 
-        {successMsg && <div className="p-4 mb-6 text-sm bg-green-950/30 border border-green-500/50 text-green-400 rounded-2xl">{successMsg}</div>}
-
-        <form onSubmit={handleSubmit} className="flex flex-col gap-6">
-          <div className="flex items-center gap-6 pb-4 border-b border-border">
-            <img
-              src={avatarPreview || 'https://via.placeholder.com/150'}
-              alt="Avatar"
-              className="w-24 h-24 rounded-full object-cover border-2 border-primary"
-            />
-            <div>
-              <label className="block text-xs font-semibold text-muted tracking-wider uppercase mb-2">Фото профілю</label>
-              <input
-                type="file"
-                accept="image/*"
-                onChange={handleAvatarChange}
-                className="hidden"
-                id="avatar-upload"
-              />
-              <label htmlFor="avatar-upload">
-                <span className="px-4 py-2 bg-surface text-sm border border-border text-white rounded-full cursor-pointer hover:bg-border transition inline-block">
-                  Обрати нове зображення
-                </span>
-              </label>
-            </div>
-          </div>
-
-          <Input
-            label="Ім'я користувача"
-            value={profile?.username || ''}
-            disabled
-            className="opacity-60"
-          />
-
-          <Input
-            label="Електронна пошта"
-            value={profile?.email || ''}
-            disabled
-            className="opacity-60"
-          />
-
-          <div className="flex flex-col gap-1.5 w-full">
-            <label className="text-xs font-medium text-muted tracking-wide">Про себе</label>
-            <textarea
-              value={bio}
-              onChange={(e) => setBio(e.target.value)}
-              className="w-full rounded-2xl bg-surface bg-surface-alt border border-border px-4 py-3 text-sm text-white focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary min-h-[100px]"
-              placeholder="Розкажіть про свої проекти..."
-            />
-          </div>
-
-          <Input
-            label="Сайт / Портфоліо"
-            type="url"
-            placeholder="https://myportfolio.com"
-            value={website}
-            onChange={(e) => setWebsite(e.target.value)}
-          />
-
-          <Button type="submit" isLoading={updateMutation.isPending} className="w-full mt-4">
-            Зберегти зміни
-          </Button>
-        </form>
+        {/* Right side */}
+        <div className="flex items-center gap-3">
+          {user ? (
+            <>
+              <Link to="/upload" className="flex items-center gap-2 px-4 py-2 rounded-full bg-pink-600 text-white text-sm font-semibold hover:bg-pink-700">
+                <Upload className="w-4 h-4" /> Upload
+              </Link>
+              {/* Avatar dropdown — деталі у Фазі 2 */}
+              <img src={user.avatar || ''} alt={user.username} className="w-9 h-9 rounded-full object-cover border border-gray-200 cursor-pointer" />
+            </>
+          ) : (
+            <>
+              <Link to="/login" className="text-sm font-medium text-gray-700 hover:text-gray-900">Sign in</Link>
+              <Link to="/register" className="px-4 py-2 rounded-full bg-gray-900 text-white text-sm font-semibold hover:bg-gray-700">Sign up</Link>
+            </>
+          )}
+        </div>
       </div>
-    </div>
+    </header>
   )
 }
 ```
 
 ---
 
-## 10. Інтеграція з бекендом
+## 12. Інтеграція з бекендом
 
-Після того, як обидві сторони завершили свої завдання автономно:
-- Команда бекенду запустила API на `http://localhost:8000`.
-- Команда фронтенду розробила інтерфейс, використовуючи MSW на `http://localhost:5173`.
-
-### 10.1. Крок до реальної інтеграції
-
-Для перемикання фронтенду на реальний бекенд необхідно змінити значення у файлі `.env` на фронтенді:
-
-```env
-# Вимикаємо мокування
-VITE_USE_MOCKS=false
-
-# Задаємо реальну адресу API
-VITE_API_BASE_URL=http://localhost:8000/api
-```
-
-Після оновлення сторінки в браузері MSW автоматично перестане перехоплювати запити, і вони підуть безпосередньо на порт `:8000`.
+1. Змінити `.env`: `VITE_USE_MOCKS=false`, `VITE_API_BASE_URL=http://localhost:8000/api`
+2. MSW автоматично вимкнеться, запити підуть на реальний backend
+3. Перевірити CORS на бекенді (origin: `http://localhost:5173`)
