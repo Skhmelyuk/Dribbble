@@ -145,8 +145,8 @@ REST_FRAMEWORK = {
 }
 
 SPECTACULAR_SETTINGS = {
-    'TITLE': 'Voxel API',
-    'DESCRIPTION': 'API для клону Dribbble (Voxel) з підтримкою автентифікації, завантаження Shots та соціальних функцій',
+    'TITLE': 'Dribbble API',
+    'DESCRIPTION': 'API для клону Dribbble з підтримкою автентифікації, завантаження Shots та соціальних функцій',
     'VERSION': '1.0.0',
     'SERVE_INCLUDE_SCHEMA': False,
     'COMPONENT_SPLIT_REQUEST': True,

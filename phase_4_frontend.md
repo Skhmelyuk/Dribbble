@@ -148,18 +148,18 @@ export class ErrorBoundary extends Component<Props, State> {
           <p className="text-gray-400 text-sm mb-4">Сталася непередбачена помилка інтерфейсу.</p>
           <button 
             onClick={() => window.location.reload()} 
-            className="px-5 py-2 bg-pink-600 hover:bg-pink-700 text-white rounded-full text-sm font-semibold"
+            className="px-5 py-2 bg-[var(--color-voxel-teal)] hover:bg-[var(--color-voxel-cyan)] text-[var(--color-voxel-black)] rounded-full text-sm font-bold"
           >
             Оновити сторінку
           </button>
         </div>
       )
     }
-    return this.children
+    return this.props.children
   }
 }
 ```
-Обернути `RouterProvider` у [src/main.tsx](file:///home/skmelyuk/Documents/projects/Dribbble/dribble-frontend/src/main.tsx) в `<ErrorBoundary>`:
+Обернути `RouterProvider` у [src/main.tsx](file:///home/skmelyuk/Documents/projects/Dribbble/frontend/src/main.tsx) в `<ErrorBoundary>`:
 ```typescript
 ReactDOM.createRoot(document.getElementById('root')!).render(
   <React.StrictMode>

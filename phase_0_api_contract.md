@@ -323,7 +323,7 @@ image: <file>
 **Відповідь `200 OK`:**
 ```json
 {
-  "is_liked": true,
+  "liked": true,
   "likes_count": 129
 }
 ```
@@ -331,7 +331,7 @@ image: <file>
 При повторному запиті — анлайк:
 ```json
 {
-  "is_liked": false,
+  "liked": false,
   "likes_count": 128
 }
 ```
@@ -345,7 +345,7 @@ image: <file>
 **Відповідь `200 OK`:**
 ```json
 {
-  "is_saved": true
+  "saved": true
 }
 ```
 
@@ -393,7 +393,7 @@ image: <file>
 **Відповідь `200 OK`:**
 ```json
 {
-  "is_following": true,
+  "following": true,
   "followers_count": 49
 }
 ```

@@ -1,0 +1,12 @@
+# Implementation folders — not tracked in this docs-only repo
+backend/
+frontend/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Editor
+.idea/
+.vscode/
+*.swp

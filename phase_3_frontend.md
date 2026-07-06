@@ -463,8 +463,8 @@ const saveMutation = useSaveMutation(shot.id)
   disabled={likeMutation.isPending || !currentUser}
   className={`flex items-center gap-2 px-4 py-2 rounded-full border text-sm font-medium transition-all cursor-pointer disabled:opacity-50 ${
     shot.is_liked
-      ? 'border-pink-300 bg-pink-50 text-pink-600'
-      : 'border-gray-200 text-gray-600 hover:bg-gray-50'
+      ? 'border-[var(--color-voxel-red)] bg-[var(--color-voxel-red)] text-white'
+      : 'border-[var(--color-voxel-gray-dark)] text-white hover:bg-white/10'
   }`}
 >
   <Heart className="w-4 h-4" fill={shot.is_liked ? 'currentColor' : 'none'} />
@@ -476,9 +476,9 @@ const saveMutation = useSaveMutation(shot.id)
   id={`save-shot-${shot.id}`}
   onClick={() => saveMutation.mutate()}
   disabled={saveMutation.isPending || !currentUser}
-  className="flex items-center gap-2 px-4 py-2 rounded-full border border-gray-200 text-sm font-medium hover:bg-gray-50 transition-colors cursor-pointer disabled:opacity-50"
+  className="flex items-center gap-2 px-4 py-2 rounded-full border border-[var(--color-voxel-gray-dark)] text-sm font-medium hover:bg-white/10 transition-colors cursor-pointer disabled:opacity-50 text-white"
 >
-  <Bookmark className="w-4 h-4" />
+  <Bookmark className="w-4 h-4" fill={shot.is_saved ? 'currentColor' : 'none'} />
   Save
 </button>
 

@@ -352,14 +352,14 @@ AWS_QUERYSTRING_AUTH = False
 AWS_S3_FILE_OVERWRITE = False
 
 # Опціонально: кастомний домен Cloudflare для CDN
-AWS_S3_CUSTOM_DOMAIN = env('R2_CUSTOM_DOMAIN', default=None)  # Наприклад, media.voxel.com
+AWS_S3_CUSTOM_DOMAIN = env('R2_CUSTOM_DOMAIN', default=None)  # Наприклад, media.dribbble.com
 ```
 
 ### 8.3. Змінні оточення у `.env`
 ```env
 R2_ACCESS_KEY_ID=your-r2-access-key-id
 R2_SECRET_ACCESS_KEY=your-r2-secret-access-key
-R2_BUCKET_NAME=voxel-media
+R2_BUCKET_NAME=dribbble-media
 R2_ENDPOINT_URL=https://xxxxxxxxxxxxxxx.r2.cloudflarestorage.com
 R2_CUSTOM_DOMAIN=pub-xxxxxxxxxxxxxx.r2.dev  # Або ваш власний домен, прикріплений до R2 bucket
 ```
