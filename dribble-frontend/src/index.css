@@ -1,0 +1,63 @@
+@import url('https://fonts.googleapis.com/css2?family=Allkin&family=Host+Grotesk:wght@400;500;600;700&family=Josefin+Sans:wght@400;500;600;700&family=Kaushan+Script&family=Kings&family=La+Belle+Aurore&family=Lumanosimo&display=swap');
+
+@import "tailwindcss";
+
+@theme {
+  --color-voxel-black: #000000;
+  --color-voxel-teal: #00B4B1;
+  --color-voxel-cyan: #00FFFB;
+  --color-voxel-gray-dark: #686868;
+  --color-voxel-cyan-light: #70FFFD;
+  --color-voxel-gray: #ACACAC;
+  --color-voxel-ochre: #BC7400;
+  --color-voxel-red: #C64949;
+  --color-voxel-pink: #E4AFAF;
+  --color-voxel-orange: #FF9D00;
+  --color-voxel-apricot: #FFC973;
+  --color-voxel-white: #FFFFFF;
+
+  /* Кольори теми додатку (Feed/Shots/Navbar) — світла тема згідно з макетом Figma */
+  --color-primary: #EC5D5F;
+  --color-primary-dark: #D6484A;
+  --color-ink: #1B1831;
+  --color-surface: #FFFFFF;
+  --color-surface-alt: #F5F5F5;
+  --color-muted: #A4A4A4;
+  --color-border: #E5E5E5;
+
+  --font-script: 'Kaushan Script', cursive;
+  --font-display: 'Host Grotesk', sans-serif;
+  --font-app: 'Josefin Sans', sans-serif;
+  --font-kings: 'Kings', serif;
+  --font-belle: 'La Belle Aurore', cursive;
+  --font-lumanosimo: 'Lumanosimo', cursive;
+  --font-allkin: 'Allkin', sans-serif;
+}
+
+@layer base {
+  body {
+    background-color: var(--color-surface);
+    color: var(--color-ink);
+    font-family: var(--font-app);
+    -webkit-font-smoothing: antialiased;
+  }
+}
+
+@keyframes bg-pan {
+  0% {
+    transform: translateX(0);
+  }
+  100% {
+    transform: translateX(-6%);
+  }
+}
+
+.auth-bg-image {
+  animation: bg-pan 40s ease-in-out infinite alternate;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .auth-bg-image {
+    animation: none;
+  }
+}

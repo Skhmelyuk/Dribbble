@@ -1,6 +1,5 @@
 # Implementation folders — not tracked in this docs-only repo
-backend/
-frontend/
+node_modules/
 
 # OS
 .DS_Store
